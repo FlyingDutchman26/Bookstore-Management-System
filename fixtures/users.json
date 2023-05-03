@@ -1,0 +1,14 @@
+[
+    {
+        "model": "app01.UserInfo",
+        "pk": 1, 
+        "fields": {
+            "username": "gc",
+            "password": "25f9e794323b453885f5181f1b624d0b", 
+            "realname": "gc",
+            "gender": "M",
+            "age": "20",
+            "is_superuser": true
+        }
+    }
+] 

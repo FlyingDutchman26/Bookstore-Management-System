@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="username">用户名:</label>
+        <input type="text" class="form-control" id="username" name="username">
+    </div>
+    <div class="form-group">
+        <label for="password">密码:</label>
+        <input type="password" class="form-control" id="password" name="password">
+    </div>
+    <div class="form-group">
+        <label for="confirm_password">确认密码:</label>
+        <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+    </div>
+    <div class="form-group">
+        <label for="realname">真实姓名:</label>
+        <input type="text" class="form-control" id="realname" name="realname">
+    </div>
+    <div class="form-group">
+        <label for="age">年龄:</label>
+        <input type="number" class="form-control" id="age" name="age">
+    </div>
+    <div class="form-group">
+        <label for="gender">性别:</label>
+        <input type="text" class="form-control" id="gender" name="gender">
+    </div>
+    <button type="submit" class="btn btn-primary">注册</button>
+</form>
+{% endblock %}

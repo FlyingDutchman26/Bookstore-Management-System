@@ -19,9 +19,15 @@ from app01 import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', views.user_login),
     path('book/list/', views.book_list),
     path('book/add/', views.book_add),
     path('book/<int:nid>/edit/', views.book_edit),
     path('book/<int:nid>/delete/', views.book_delete),
-    path('book/<int:nid>/sale',views.book_sale)
+    path('book/<int:nid>/sale/',views.book_sale),
+    path('user_login/',views.user_login),
+    path('user_logout/',views.user_logout),
+    path('profile/',views.profile),
+    path('create_user/',views.create_user),
+    path('edit_user/',views.edit_user),
 ]

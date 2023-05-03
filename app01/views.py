@@ -3,8 +3,12 @@ from django.core.validators import RegexValidator, ValidationError
 from app01 import models
 from django import forms
 from django.db.models import Q
-
-
+from django.contrib.auth.decorators import login_required
+from hashlib import md5
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.contrib.auth.forms import UserCreationForm
 # Create your views here.
 class BookInfoModelForm(forms.ModelForm):
     isbn = forms.CharField(label="ISBN", max_length=13,
@@ -48,7 +52,6 @@ class BookEditInfoModelForm(forms.ModelForm):
             # if name == '': 特殊指定
             #     continue
 
-
 def book_list(request):
     search_data = request.GET.get('query', '')
     if search_data:
@@ -59,7 +62,6 @@ def book_list(request):
         queryset = models.BookInfo.objects.all().order_by('name')
 
     return render(request, 'book_list.html', {'queryset': queryset, 'search_data': search_data})
-
 
 def book_add(request):
     '''
@@ -79,7 +81,6 @@ def book_add(request):
         else:
             return render(request, 'book_add.html', {'form': form})
 
-
 def book_edit(request, nid):
     row_object = models.BookInfo.objects.filter(id=nid).first()
     if request.method == 'GET':
@@ -94,11 +95,116 @@ def book_edit(request, nid):
         else:
             return render(request, 'book_edit.html', {'form': form})
 
-
 def book_delete(request, nid):
     models.BookInfo.objects.filter(id=nid).delete()
     return redirect('/book/list/')
 
-
 def book_sale(request, nid):
     pass
+
+def user_login(request): 
+    if request.method == 'POST':
+        # 过滤
+        user = models.UserInfo.objects.filter(username=request.POST.get('username'))
+        if not user.exists():
+            return render(request, 'user_login.html', {'error': '用户不存在!'})
+        if user.exists() and user.first().password == md5(request.POST.get('password').encode('utf-8')).hexdigest():  
+            request.session['user_id'] = user.first().id  
+            #login(request,user)
+            #return redirect('book/list/')
+            response = HttpResponseRedirect('book/list/')
+            response.set_cookie("user_id", user.first().id)
+            return response
+        return render(request, 'user_login.html', {'error': '密码错误!'}) 
+    else:
+        return render(request, 'user_login.html')
+
+#@login_required
+def user_logout(request):
+    logout(request)
+    return redirect('user_login')
+
+#@login_required
+def profile(request):
+    '''用来查看用户信息，区分了普通管理员和超级管理员'''
+    if request.user.is_superuser:
+        users = models.UserInfo.objects.all()
+    else:
+        users = models.UserInfo.objects.filter(pk=request.user.pk)
+    context = {
+        'users': users
+    }
+    return render(request, 'profile.html', context) 
+
+#@login_required
+def create_user(request):
+    # Only superuser can create a new admin
+    if not request.user.is_superuser:
+        messages.error(request, 'You are not authorized to perform this action.')
+        return redirect('book_list')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        realname=request.POST.get('realname')
+        age=request.POST.get('age')
+        gender=request.POST.get('gender')
+        confirm_password = request.POST.get('confirm_password')
+        if password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return redirect('/create_user/')
+        if models.UserInfo.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists.')
+            return redirect('/create_user/')
+        user = models.UserInfo.objects.create(username=username, password=md5(password.encode('utf-8')).hexdigest(),
+                                          realname=realname,age=age,gender=gender)
+        user.is_staff = True
+        user.save()
+        messages.success(request, 'New admin user created successfully.')
+        return redirect('/user_list/')
+
+    return render(request, 'create_user.html')
+
+class UserForm(forms.ModelForm):
+    class Meta:
+        model = models.UserInfo
+        fields = ['username','password','realname','gender','age']
+
+class CommonUserForm(UserForm):
+    def __init__(self, user_id, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_id = user_id
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user = models.UserInfo.objects.get(pk=self.user_id)
+        if user.id != self.instance.id:
+            raise forms.ValidationError('无权限修改其他用户信息')
+        return cleaned_data
+    
+class SuperUserForm(UserForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        return cleaned_data
+
+#@login_required
+def edit_user(request, user_id):
+    user = models.UserInfo.objects.get(pk=user_id)
+    if request.user.is_superuser:
+        form_class = SuperUserForm
+    else:
+        form_class = CommonUserForm
+
+    if request.method == 'POST':
+        form = form_class(request.user.id, request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('profile', user_id=user.id)
+    else:
+        form = form_class(request.user.id, instance=user)
+
+    context = {'form': form}
+    return render(request, 'edit_user.html', context)
