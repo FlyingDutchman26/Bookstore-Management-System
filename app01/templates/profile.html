@@ -2,15 +2,9 @@
 
 {% block content %}
 <div class="col-md-4">
-    <a class="btn btn-primary" href="create_user">
+    <a class="btn btn-primary" href="/create_user/">
         <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
         新建用户
-    </a> 
-</div>
-<div class="col-md-4">
-    <a class="btn btn-primary" href="edit_user">
-        <span aria-hidden="true"></span>
-        修改用户信息
     </a> 
 </div>
 
@@ -41,15 +35,24 @@
                 <td>{{u.realname}}</td>
                 <td>{{u.gender}}</td>
                 <td>{{u.age}}</td>
+                <td>
+                    <a class="btn btn-info btn-xs" href='/edit_user/{{u.pk}}/'>修改</a>
+                    <a class="btn btn-success btn-xs" href='/edit_password/{{u.pk}}/'>修改密码</a>
+                    <a class="btn btn-danger btn-xs" href="/delete_user/{{ u.pk }}/">删除</a>
+                </td>
             </tr>
         {% endfor %}
         {% else %}
         <tr>
-            <td>{{u.id}}</td>
-            <td>{{u.username}}</td>
-            <td>{{u.realname}}</td>
-            <td>{{u.gender}}</td>
-            <td>{{u.age}}</td>
+            <td>{{user.id}}</td>
+            <td>{{user.username}}</td>
+            <td>{{user.realname}}</td>
+            <td>{{user.gender}}</td>
+            <td>{{user.age}}</td>
+            <td>
+                <a class="btn btn-info btn-xs" href='/edit_user/{{user.pk}}/'>修改</a>
+                <a class="btn btn-success btn-xs" href='/edit_password/{{user.pk}}/'>修改密码</a>
+            </td>
         </tr>
         {% endif %}
         </tbody>

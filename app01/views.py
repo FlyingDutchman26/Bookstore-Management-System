@@ -4,8 +4,8 @@ from app01 import models
 from django import forms
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
-from hashlib import md5
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import authenticate, login, logout,update_session_auth_hash
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.contrib.auth.forms import UserCreationForm
@@ -103,9 +103,9 @@ def book_sale(request, nid):
     pass
 
 def user_login(request): 
-    if request.user.is_authenticated:
-        return redirect('/book/list/')
-    else:
+    # if request.user.is_authenticated:
+    #     return redirect('/book/list/')
+    # else:
         if request.method == 'POST':
             user_usernmae=request.POST.get('username')
             user_password=request.POST.get('password')
@@ -118,7 +118,7 @@ def user_login(request):
             else:
                 messages.error(request,'用户名或密码错误')
                 return render(request, 'user_login.html', {'error': '用户名或密码错误!'}) 
-    return render(request,'user_login.html')
+        return render(request,'user_login.html')
 
 
 @login_required
@@ -179,40 +179,45 @@ class UserForm(forms.ModelForm):
         fields = ['username','password','realname','gender','age']
 
 class CommonUserForm(UserForm):
-    def __init__(self, user_id, *args, **kwargs):
+    def __init__(self, user_pk, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.user_id = user_id
+        self.user_pk = user_pk
 
     def clean(self):
         cleaned_data = super().clean()
-        user = models.UserInfo.objects.get(pk=self.user_id)
-        if user.id != self.instance.id:
-            raise forms.ValidationError('无权限修改其他用户信息')
         return cleaned_data
     
-class SuperUserForm(UserForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        return cleaned_data
 
 @login_required
-def edit_user(request, user_id):
-    user = models.UserInfo.objects.get(pk=user_id)
-    if request.user.is_superuser:
-        form_class = SuperUserForm
-    else:
-        form_class = CommonUserForm
-
+def edit_user(request,user_pk):
+    user = models.UserInfo.objects.filter(pk=user_pk).first()
+    form_class = CommonUserForm
     if request.method == 'POST':
         form = form_class(request.user.id, request.POST, instance=user)
-        if form.is_valid():
+        if form.is_valid() :
             form.save()
-            return redirect('/profile/', user_id=user.id)
+            return redirect('/profile/')
     else:
         form = form_class(request.user.id, instance=user)
 
     context = {'form': form}
     return render(request, 'edit_user.html', context)
+
+@login_required
+def edit_password(request,user_pk):
+    user=models.UserInfo.objects.filter(pk=user_pk).first()
+    if request.method=='POST':
+        password_form=PasswordChangeForm(user,request.POST)
+        if password_form.is_valid():
+            password_form.save()
+            update_session_auth_hash(request, password_form.user)   #根据用户的新密码重新计算session中保存的hash,刷新session
+            return redirect('/profile/')
+    else:
+        password_form=PasswordChangeForm(user,request.POST)
+    context = {'password_form': password_form}
+    return render(request, 'edit_password.html', context)
+
+@login_required
+def delete_user(request, user_pk):
+    models.UserInfo.objects.filter(id=user_pk).delete()
+    return redirect('/profile/')
