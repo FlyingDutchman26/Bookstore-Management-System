@@ -4,10 +4,12 @@
         "pk": 1, 
         "fields": {
             "username": "gc",
-            "password": "25f9e794323b453885f5181f1b624d0b", 
+            "email":"20307140043@fudna.edu.cn",
+            "password": "123456789", 
             "realname": "gc",
             "gender": "M",
             "age": "20",
+            "is_staff":true,
             "is_superuser": true
         }
     }

@@ -15,8 +15,8 @@ class BookInfo(models.Model):
 class UserInfo(AbstractUser):
     gender_choices = (('M', 'Male'), ('F', 'Female'))
     
-    realname=models.CharField(max_length=50)
-    gender = models.CharField(max_length=1, choices=gender_choices)
-    age = models.IntegerField()
-    is_superuser = models.BooleanField(('superuser status'), default=False)
+    realname=models.CharField(max_length=50,null=True)
+    gender = models.CharField(max_length=1, choices=gender_choices,null=True)
+    age = models.IntegerField(null=True)
+
     

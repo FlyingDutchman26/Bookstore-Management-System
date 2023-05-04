@@ -26,8 +26,11 @@ urlpatterns = [
     path('book/<int:nid>/delete/', views.book_delete),
     path('book/<int:nid>/sale/',views.book_sale),
     path('user_login/',views.user_login),
-    path('user_logout/',views.user_logout),
-    path('profile/',views.profile),
+    path('book/list/user_login/',views.user_login),
+    path('book/list/user_logout/',views.user_logout),
+    path('book/list/profile/',views.profile),
     path('create_user/',views.create_user),
+    path('book/list/profile/create_user',views.create_user),
+    path('book/list/profile/edit_user',views.edit_user),
     path('edit_user/',views.edit_user),
 ]

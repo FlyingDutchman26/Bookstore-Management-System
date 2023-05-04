@@ -103,28 +103,30 @@ def book_sale(request, nid):
     pass
 
 def user_login(request): 
-    if request.method == 'POST':
-        # 过滤
-        user = models.UserInfo.objects.filter(username=request.POST.get('username'))
-        if not user.exists():
-            return render(request, 'user_login.html', {'error': '用户不存在!'})
-        if user.exists() and user.first().password == md5(request.POST.get('password').encode('utf-8')).hexdigest():  
-            request.session['user_id'] = user.first().id  
-            #login(request,user)
-            #return redirect('book/list/')
-            response = HttpResponseRedirect('book/list/')
-            response.set_cookie("user_id", user.first().id)
-            return response
-        return render(request, 'user_login.html', {'error': '密码错误!'}) 
+    if request.user.is_authenticated:
+        return redirect('/book/list/')
     else:
-        return render(request, 'user_login.html')
+        if request.method == 'POST':
+            user_usernmae=request.POST.get('username')
+            user_password=request.POST.get('password')
+            # 在Django的authenticate方法中,输入的原始密码会使用PBKDF2算法与相应的salt进行加密运算,如果结果与存储的密文一致,则密码验证成功,否则失败
+            user=authenticate(username=user_usernmae,password=user_password)
+            if user is not None:
+                login(request,user)
+                messages.success(request,'登录成功')
+                return redirect('/book/list/')
+            else:
+                messages.error(request,'用户名或密码错误')
+                return render(request, 'user_login.html', {'error': '用户名或密码错误!'}) 
+    return render(request,'user_login.html')
 
-#@login_required
+
+@login_required
 def user_logout(request):
     logout(request)
-    return redirect('user_login')
+    return redirect('/user_login/')
 
-#@login_required
+@login_required
 def profile(request):
     '''用来查看用户信息，区分了普通管理员和超级管理员'''
     if request.user.is_superuser:
@@ -136,32 +138,38 @@ def profile(request):
     }
     return render(request, 'profile.html', context) 
 
-#@login_required
+@login_required
 def create_user(request):
     # Only superuser can create a new admin
     if not request.user.is_superuser:
-        messages.error(request, 'You are not authorized to perform this action.')
-        return redirect('book_list')
+        messages.error(request, '无权限操作')
+        return redirect('/book_list/')
 
     if request.method == 'POST':
         username = request.POST.get('username')
+        email=request.POST.get('email')
         password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
         realname=request.POST.get('realname')
         age=request.POST.get('age')
         gender=request.POST.get('gender')
-        confirm_password = request.POST.get('confirm_password')
+
         if password != confirm_password:
-            messages.error(request, 'Passwords do not match.')
+            messages.error(request, '两次密码输入不匹配')
             return redirect('/create_user/')
         if models.UserInfo.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
+            messages.error(request, '用户名已被使用')
             return redirect('/create_user/')
-        user = models.UserInfo.objects.create(username=username, password=md5(password.encode('utf-8')).hexdigest(),
-                                          realname=realname,age=age,gender=gender)
-        user.is_staff = True
+        user=models.UserInfo.objects.create_user(username=username,password=password,email=email)
+        # user = models.UserInfo.objects.create(username=username, password=md5(password.encode('utf-8')).hexdigest(),
+        #                                   realname=realname,age=age,gender=gender)
+        user.realname=realname
+        user.age=age
+        user.gender=gender
+        user.is_staff=True
         user.save()
-        messages.success(request, 'New admin user created successfully.')
-        return redirect('/user_list/')
+        messages.success(request, '新用户创建成功')
+        return redirect('/profile/')
 
     return render(request, 'create_user.html')
 
@@ -190,7 +198,7 @@ class SuperUserForm(UserForm):
         cleaned_data = super().clean()
         return cleaned_data
 
-#@login_required
+@login_required
 def edit_user(request, user_id):
     user = models.UserInfo.objects.get(pk=user_id)
     if request.user.is_superuser:
@@ -202,7 +210,7 @@ def edit_user(request, user_id):
         form = form_class(request.user.id, request.POST, instance=user)
         if form.is_valid():
             form.save()
-            return redirect('profile', user_id=user.id)
+            return redirect('/profile/', user_id=user.id)
     else:
         form = form_class(request.user.id, instance=user)
 
