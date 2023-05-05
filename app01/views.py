@@ -174,7 +174,7 @@ def create_user(request):
     return render(request, 'create_user.html')
 
 class UserForm(forms.ModelForm):
-    class Meta:
+    class Meta: #元操作，元属性等
         model = models.UserInfo
         fields = ['username','password','realname','gender','age']
 
@@ -182,7 +182,7 @@ class CommonUserForm(UserForm):
     def __init__(self, user_pk, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user_pk = user_pk
-
+    # 格式化数据、消除不必要的数据、检查数据是否符合要求等
     def clean(self):
         cleaned_data = super().clean()
         return cleaned_data
