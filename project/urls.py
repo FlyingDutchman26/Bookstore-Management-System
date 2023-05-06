@@ -34,7 +34,7 @@ urlpatterns = [
     path('admin/<int:nid>/reset/', admin.admin_reset),
 
     # 账户: 登录与注销
-    path('', account.login),
+    path('', book.book_list),
     path('login/', account.login),
     path('logout/', account.logout),
 

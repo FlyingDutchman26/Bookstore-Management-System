@@ -42,7 +42,6 @@
                        aria-expanded="false">Hello {{ request.session.info.username }}<span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="/user/{{ request.session.info.id }}/edit/">个人信息</a></li>
-                        <li><a href="#">用户设置</a></li>
                         <li><a href="#">帮助</a></li>
                         <li role="separator" class="divider"></li>
                         <li><a href="/logout/">退出登录</a></li>
