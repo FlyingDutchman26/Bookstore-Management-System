@@ -53,4 +53,5 @@ urlpatterns = [
     path('order/<int:nid>/pay/', order.order_pay),  # 支付
     path('order/<int:nid>/cancel/', order.order_cancel),  # 取消订单: 针对未付款书籍
     path('order/<int:nid>/delete/', order.order_delete),  # 删除订单：针对已付款书籍
+
 ]
