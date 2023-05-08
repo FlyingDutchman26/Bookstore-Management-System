@@ -1,48 +1,50 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-<h1>财务记录</h1>
-<form method="GET" class="text-center">
-    <label>起始日期: 
-        <input type="date" name="start_date" class="form-control" max="today" > 
-    </label>
-    <label>结束日期: 
-        <input type="date" name="end_date" class="form-control" value="today" max="today" > 
-    </label>
-    <br>
-    <label>收入/支出:
-        <input type="radio" name="income_expense" value=1 class="form-check-input" autocomplete="off"> 收入  
-        <input type="radio" name="income_expense" value=2 class="form-check-input" autocomplete="off"> 支出
-        <input type="radio" name="income_expense" value=0 class="form-check-input" autocomplete="off"> 总收益
-    </label>
-    <button type="submit">查询</button>
-</form>
-<h2>{{ period }} {{ income_expense }}</h2>
-<p>总额:¥{{ total_amount }}</p>
-<table class="table table-striped table-bordered">
-    <thead class="thead-light">
-    <tr>
-        <th>记账时间</th>
-        <th>操作用户</th>
-        <th>收入/支出</th>
-        <th>金额(¥)</th>
-        <th>备注</th>
-    </tr>
-    </thead>
-    <tbody  class="table-light">
-    {% for bill in bills %}
+    <div style="text-align: center">
+        <h1>财务记录</h1>
+    </div>
+    <form method="GET" class="text-center">
+        <label>起始日期:
+            <input type="date" name="start_date" class="form-control" max="today">
+        </label>
+        <label>结束日期:
+            <input type="date" name="end_date" class="form-control" value="today" max="today">
+        </label>
+        <br>
+        <label>收入/支出:
+            <input type="radio" name="income_expense" value=1 class="form-check-input" autocomplete="off"> 收入
+            <input type="radio" name="income_expense" value=2 class="form-check-input" autocomplete="off"> 支出
+            <input type="radio" name="income_expense" value=0 class="form-check-input" autocomplete="off"> 总收益
+        </label>
+        <button type="submit">查询</button>
+    </form>
+    <h2>{{ period }} {{ income_expense }}</h2>
+    <p>总额:¥{{ total_amount }}</p>
+    <table class="table table-striped table-bordered">
+        <thead class="thead-light">
         <tr>
-            <td>{{ bill.timestamp}}</td>
-            <td>{{ bill.username.username}}</td>
-            <td>{% if bill.type == 1 %}
-                <span class="badge badge-success">收入</span>
-                {% elif bill.type == 2 %} 
-                <span class="badge badge-danger">支出</span>
-                {% endif %}</td>
-            <td>{{ bill.amount }}</td>
-            <td>{{ bill.description }}</td>
+            <th>记账时间</th>
+            <th>操作用户</th>
+            <th>收入/支出</th>
+            <th>金额(¥)</th>
+            <th>备注</th>
         </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody class="table-light">
+        {% for bill in bills %}
+            <tr>
+                <td>{{ bill.timestamp }}</td>
+                <td>{{ bill.username.username }}</td>
+                <td>{% if bill.type == 1 %}
+                    <span class="badge badge-success">收入</span>
+                {% elif bill.type == 2 %}
+                    <span class="badge badge-danger">支出</span>
+                {% endif %}</td>
+                <td>{{ bill.amount }}</td>
+                <td>{{ bill.description }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
